@@ -33,13 +33,10 @@
 					<h3>S2 cover map viewer using Go code compiled into WASM</h3>
 				</div>
 				<div class="col-md-auto">
-						<a class="github-button" href="https://github.com/akhenakh/ws2/fork" data-size="large" aria-label="Fork akhenakh/ws2 on GitHub">Fork</a>
-
+						<a class="github-button" href="https://github.com/spreeker/ws2/fork" data-size="large" aria-label="Fork spreeker/ws2 on GitHub">Fork</a>
 				</div>
-
 		</div>
 		<div class="row">
-
 			<div class="col"><div id="mapid"></div></div>
 			<div class="col-lg-2">
 				<div class="form-group">
@@ -54,17 +51,15 @@
 					<label for="maxCellsRange">Maximum Cells</label>
 					<output name="maxCellsOutputName" id="maxCellsOutputId">600</output>
 					<input type="range" class="custom-range" min="1" max="600" value="600" id="maxCellsRange" oninput="maxCellsOutputId.value = maxCellsRange.value">
-					<button onClick="coverShape()" id="coverButton"  class="btn btn-secondary" >Cover</button>
+					<button onClick="coverShape()" id="coverButton"  class="btn btn-secondary" disabled=>Cover</button>
 				</div>
 
 				<div class="form-group">
 					<label for="cells_input">Insert cells IDs</label>
 					<textarea class="form-control" placeholder="47e665 or 2/0333030302 or 5180939472010739712" id="cells_input" rows="5"></textarea>
 					</div>
-				<button onclick="displayCells()" id="cellsButton" class="btn btn-secondary">Display Cells</button>
+				<button onclick="displayCells()" id="cellsButton" class="btn btn-secondary" disabled=>Display Cells</button>
 			</div>
-
-
 		</div>
 		<div>
 			<span id="cell_count" class="badge badge-pill badge-primary">0</span>
@@ -141,7 +136,7 @@
 		var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 		var osmAttrib='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
 		var osm = new L.TileLayer(osmUrl, {minZoom: 2, maxZoom: 18, attribution: osmAttrib});
-		mymap.setView(new L.LatLng(48.862884, 2.343975), 11);
+		mymap.setView(new L.LatLng(52.08676, 4.308114), 16);
 		mymap.addLayer(osm);
 
 		// define toolbar options

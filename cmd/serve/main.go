@@ -35,6 +35,7 @@ func main() {
 			exec.Command(cmd, "http://127.0.0.1"+*listen).Run()
 		}()
 	}
+
 	log.Fatal(http.ListenAndServe(*listen, http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
 		if strings.HasSuffix(req.URL.Path, ".wasm") {
 			resp.Header().Set("content-type", "application/wasm")

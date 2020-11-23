@@ -128,7 +128,7 @@ func drawCells(this js.Value, i []js.Value) interface{} {
 
 	cells := make(s2.CellUnion, len(un))
 	count := 0
-	for c, _ := range un {
+	for c := range un {
 		cells[count] = c
 		count++
 	}
@@ -155,7 +155,7 @@ func s2RadialAreaMeters(radius float64) float64 {
 }
 
 func main() {
-	c := make(chan struct{}, 0)
+	c := make(chan struct{})
 	println("Wasm ready")
 	registerCallbacks()
 	<-c
