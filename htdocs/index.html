@@ -30,7 +30,7 @@
 	<div class="container">
 		<div class="row justify-content-md-center">
 				<div class="col">
-					<h3>S2 cover map viewer using Go code compiled into WASM</h3>
+					<h3>S2 dataselectie DEMO </h3>
 				</div>
 				<div class="col-md-auto">
 						<a class="github-button" href="https://github.com/spreeker/ws2/fork" data-size="large" aria-label="Fork spreeker/ws2 on GitHub">Fork</a>
@@ -67,6 +67,8 @@
 				<div class="form-group">
 					<label for="cells_input">Geo dataselection</label>
 					<button onclick="dataselection()" id="dsButton" class="btn btn-secondary" disabled=>DataSelection</button>
+
+					<label id="rowcount"></label>
 				</div>
 			</div>
 		</div>
@@ -146,7 +148,7 @@
 			sgj = JSON.stringify(geojson["geometry"])
 			formData.append("geojson", sgj)
 
-			var url = "http://127.0.0.1:8000/list/?limit=500"
+			var url = "http://127.0.0.1:8000/list/?pagesize=500"
 			const response = await fetch(url, {
 			      method: "POST",
 			      body: formData,
@@ -154,6 +156,9 @@
 				"Content-type": "application/x-www-form-urlencoded",
 			      },
 			});
+
+			count = response.headers.get('Total-Items')
+			document.getElementById("rowcount").innerHTML = "found: " + count + " records."
 			const data = await response.json();
 
 			var pl = document.getElementById("postcode_list");
@@ -161,17 +166,20 @@
 		        var p = document.createElement("p");                 // Create a <li> node
 		        var s = document.createElement("small");                 // Create a <li> node
 			var txt = ""
-			var re = new RegExp("([0-9]*[.][0-9]+)")
-			console.log(data[0])
+			var re = new RegExp("([0-9]*[.][0-9])+([0-9]*[.][0-9])")
+
 			for (d of data) {
+				wkt_point = d["Point"]
 				txt = txt + d["Ekey"] + ", "
-				do {
-					m = re.exec(d["point"])
-					if (m) {
-						console.log(m[0])
-					}
-				} while(m);
+				pts = [...wkt_point.matchAll("([0-9]*[.][0-9]*)")]
+				if(pts.length === 2) {
+					lat = pts[0][0]
+					lon = pts[1][0]
+					L.circleMarker([lon, lat], {
+						'radius': 1 }).addTo(mymap);
+				}
 			}
+
 			s.innerText = txt
 			p.appendChild(s)
 			pl.appendChild(p)
@@ -200,7 +208,9 @@
 			inst = await WebAssembly.instantiate(mod, go.importObject); // reset instance
 		}
 
-		var mymap = L.map('mapid');
+		var mymap = L.map('mapid', {
+			 preferCanvas: true,
+		});
 		// create the tile layer with correct attribution
 		var osmUrl='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 		var osmAttrib='Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
