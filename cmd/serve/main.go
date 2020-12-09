@@ -36,11 +36,24 @@ func main() {
 		}()
 	}
 
-	log.Fatal(http.ListenAndServe(*listen, http.HandlerFunc(func(resp http.ResponseWriter, req *http.Request) {
-		if strings.HasSuffix(req.URL.Path, ".wasm") {
-			resp.Header().Set("content-type", "application/wasm")
+	log.Fatal(http.ListenAndServe(*listen, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, ".wasm") {
+			w.Header().Set("content-type", "application/wasm")
 		}
+		origin := r.Header.Get("Origin")
+		if origin == "" {
+			origin = "*"
+		}
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Expose-Headers", "*")
 
-		http.FileServer(http.Dir(*dir)).ServeHTTP(resp, req)
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+			w.Header().Set("Access-Control-Allow-Methods", "GET,POST")
+			w.Header().Set("Access-Control-Allow-Headers", "Page, Page-Size, Total-Pages, query, Total-Items, Query-Duration, Content-Type, X-CSRF-Token, Authorization")
+			return
+		} else {
+			http.FileServer(http.Dir(*dir)).ServeHTTP(w, r)
+		}
 	})))
 }

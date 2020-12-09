@@ -57,14 +57,24 @@
 				<div class="form-group">
 					<label for="cells_input">Insert cells IDs</label>
 					<textarea class="form-control" placeholder="47e665 or 2/0333030302 or 5180939472010739712" id="cells_input" rows="5"></textarea>
-					</div>
-				<button onclick="displayCells()" id="cellsButton" class="btn btn-secondary" disabled=>Display Cells</button>
+				</div>
+
+				<div class="form-group">
+					<button onclick="displayCells()" id="cellsButton" class="btn btn-secondary" disabled=>Display Cells</button>
+
+				</div>
+
+				<div class="form-group">
+					<label for="cells_input">Geo dataselection</label>
+					<button onclick="dataselection()" id="dsButton" class="btn btn-secondary" disabled=>DataSelection</button>
+				</div>
 			</div>
 		</div>
 		<div>
 			<span id="cell_count" class="badge badge-pill badge-primary">0</span>
 			<a href='#' id='exportLink' style="visibility:hidden">Export Cells to GeoJSON</a>
 		</div>
+		<div class="row" id="postcode_list">
 		<div class="row" id="cell_list">
 
 		</div>
@@ -109,6 +119,64 @@
 			}
 		}
 
+		async function dataselection() {
+			console.log('select data')
+
+			if (shapeLayer === null || shapeLayer === undefined) {
+				console.log("no shape drawn yet")
+				return
+			}
+
+			console.log("la", shapeLayer.toGeoJSON());
+
+			gj = shapeLayer.toGeoJSON();
+
+			console.log(gj)
+
+			if (gj.type == "Feature") {
+				// check if it could be a circle
+				if (shapeLayer.options.radius !== undefined) {
+					// circlecell(gj.geometry.coordinates[0], gj.geometry.coordinates[1], shapeLayer.options.radius);
+					console.log("circle not supported yet")
+					return;
+				}
+			}
+			geojson = shapeLayer.toGeoJSON(gj)
+			let formData = new URLSearchParams();
+			sgj = JSON.stringify(geojson["geometry"])
+			formData.append("geojson", sgj)
+
+			var url = "http://127.0.0.1:8000/list/?limit=500"
+			const response = await fetch(url, {
+			      method: "POST",
+			      body: formData,
+			      headers: {
+				"Content-type": "application/x-www-form-urlencoded",
+			      },
+			});
+			const data = await response.json();
+
+			var pl = document.getElementById("postcode_list");
+			pl.innerHTML = '';
+		        var p = document.createElement("p");                 // Create a <li> node
+		        var s = document.createElement("small");                 // Create a <li> node
+			var txt = ""
+			var re = new RegExp("([0-9]*[.][0-9]+)")
+			console.log(data[0])
+			for (d of data) {
+				txt = txt + d["Ekey"] + ", "
+				do {
+					m = re.exec(d["point"])
+					if (m) {
+						console.log(m[0])
+					}
+				} while(m);
+			}
+			s.innerText = txt
+			p.appendChild(s)
+			pl.appendChild(p)
+		}
+
 		if (!WebAssembly.instantiateStreaming) { // polyfill
 			WebAssembly.instantiateStreaming = async (resp, importObject) => {
 				const source = await (await resp).arrayBuffer();
@@ -122,6 +190,7 @@
 			inst = result.instance;
 			document.getElementById("coverButton").disabled = false;
 			document.getElementById("cellsButton").disabled = false;
+			document.getElementById("dsButton").disabled = false;
 			await go.run(inst);
 		});
 
@@ -142,14 +211,14 @@
 		// define toolbar options
 		var options = {
 			position: 'topleft', // toolbar position, options are 'topleft', 'topright', 'bottomleft', 'bottomright'
-			drawMarker: true, // adds button to draw markers
-			drawPolyline: true, // adds button to draw a polyline
+			drawMarker: true,    // adds button to draw markers
+			drawPolyline: true,  // adds button to draw a polyline
 			drawRectangle: true, // adds button to draw a rectangle
-			drawPolygon: true, // adds button to draw a polygon
-			drawCircle: true, // adds button to draw a cricle
-			cutPolygon: false, // adds button to cut a hole in a polygon
-			editMode: false, // adds button to toggle edit mode for all layers
-			removalMode: false, // adds a button to remove layers
+			drawPolygon: true,   // adds button to draw a polygon
+			drawCircle: true,    // adds button to draw a cricle
+			cutPolygon: false,   // adds button to cut a hole in a polygon
+			editMode: false,     // adds button to toggle edit mode for all layers
+			removalMode: false,  // adds a button to remove layers
 		};
 
 		document.getElementById('exportLink').onclick = function(e) {
